@@ -1,16 +1,16 @@
 #import "PPSSignatureView.h"
 #import <OpenGLES/ES2/glext.h>
 
-#define             STROKE_WIDTH_MIN 0.004 // Stroke width determined by touch velocity
-#define             STROKE_WIDTH_MAX 0.030
-#define       STROKE_WIDTH_SMOOTHING 0.5   // Low pass filter alpha
+#define		STROKE_WIDTH_MIN 0.004 // Stroke width determined by touch velocity
+#define		STROKE_WIDTH_MAX 0.030
+#define		STROKE_WIDTH_SMOOTHING 0.5   // Low pass filter alpha
 
-#define           VELOCITY_CLAMP_MIN 20
-#define           VELOCITY_CLAMP_MAX 5000
+#define		VELOCITY_CLAMP_MIN 20
+#define		VELOCITY_CLAMP_MAX 5000
 
-#define QUADRATIC_DISTANCE_TOLERANCE 3.0   // Minimum distance to make a curve
+#define		QUADRATIC_DISTANCE_TOLERANCE 3.0   // Minimum distance to make a curve
 
-#define             MAXIMUM_VERTECES 100000
+#define		MAXIMUM_VERTECES 100000
 
 
 static GLKVector3 StrokeColor = { 0, 0, 0 };
@@ -381,6 +381,9 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
 }
 
 - (void)pan:(UIPanGestureRecognizer *)p {
+    if(self.signViewDelegate!=nil){
+        [self.signViewDelegate onPan];
+    }
 	
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
 	
