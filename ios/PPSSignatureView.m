@@ -189,6 +189,17 @@ static PPSSignaturePoint ViewPointToGL(CGPoint viewPoint, CGRect bounds, GLKVect
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	[effect prepareToDraw];
+	
+	// Drawing of signature lines
+    if (length > 2) {
+        glBindVertexArrayOES(vertexArray);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, length);
+    }
+    
+    if (dotsLength > 0) {
+        glBindVertexArrayOES(dotsArray);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, dotsLength);
+    }
 }
 
 
