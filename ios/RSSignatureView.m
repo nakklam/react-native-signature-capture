@@ -34,7 +34,7 @@
 		_border.fillColor = nil;
 		_border.lineDashPattern = @[@4, @2];
 		
-		[self.layer addSublayer:_border];
+		//[self.layer addSublayer:_border];
 	}
 	
 	return self;
