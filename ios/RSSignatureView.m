@@ -6,6 +6,11 @@
 #import "RSSignatureViewManager.h"
 
 #define DEGREES_TO_RADIANS(x) (M_PI * (x) / 180.0)
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
+
+@interface RSSignatureView () <PPSSignatureViewDelegate>
+
+@end
 
 @implementation RSSignatureView {
 	CAShapeLayer *_border;
@@ -45,103 +50,70 @@
 
 - (void)layoutSubviews
 {
-	[super layoutSubviews];
-	if (!_loaded) {
-		
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate:)
-																								 name:UIDeviceOrientationDidChangeNotification object:nil];
-		
-		_context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-		
-		CGSize screen = self.bounds.size;
-		
-		sign = [[PPSSignatureView alloc]
-						initWithFrame: CGRectMake(0, 0, screen.width, screen.height)
-						context: _context];
-		
-		[self addSubview:sign];
-		
-		if ( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad ) {
-			
-			titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, 24)];
-			[titleLabel setCenter:CGPointMake(self.bounds.size.width/2, self.bounds.size.height - 120)];
-			
-			[titleLabel setText:@"x_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _"];
-			[titleLabel setLineBreakMode:NSLineBreakByClipping];
-			[titleLabel setTextAlignment: NSTextAlignmentCenter];
-			[titleLabel setTextColor:[UIColor colorWithRed:200/255.f green:200/255.f blue:200/255.f alpha:1.f]];
-			//[titleLabel setBackgroundColor:[UIColor greenColor]];
-			[sign addSubview:titleLabel];
-			
-			//Save button
-			saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-			[saveButton setLineBreakMode:NSLineBreakByClipping];
-			[saveButton addTarget:self action:@selector(onSaveButtonPressed)
-					 forControlEvents:UIControlEventTouchUpInside];
-			[saveButton setTitle:@"Save" forState:UIControlStateNormal];
-			
-			CGSize buttonSize = CGSizeMake(80, 55.0);
-			
-			saveButton.frame = CGRectMake(sign.bounds.size.width - buttonSize.width,
-																		0, buttonSize.width, buttonSize.height);
-			[saveButton setBackgroundColor:[UIColor colorWithRed:250/255.f green:250/255.f blue:250/255.f alpha:1.f]];
-			[sign addSubview:saveButton];
-			
-			
-			//Clear button
-			clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-			[clearButton setLineBreakMode:NSLineBreakByClipping];
-			[clearButton addTarget:self action:@selector(onClearButtonPressed)
-						forControlEvents:UIControlEventTouchUpInside];
-			[clearButton setTitle:@"Reset" forState:UIControlStateNormal];
-			
-			clearButton.frame = CGRectMake(0, 0, buttonSize.width, buttonSize.height);
-			[clearButton setBackgroundColor:[UIColor colorWithRed:250/255.f green:250/255.f blue:250/255.f alpha:1.f]];
-			[sign addSubview:clearButton];
-		}
-		else {
-			
-			titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.height - 80, 24)];
-			[titleLabel setCenter:CGPointMake(40, self.bounds.size.height/2)];
-			[titleLabel setTransform:CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90))];
-			[titleLabel setText:@"x_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _"];
-			[titleLabel setLineBreakMode:NSLineBreakByClipping];
-			[titleLabel setTextAlignment: NSTextAlignmentLeft];
-			[titleLabel setTextColor:[UIColor colorWithRed:200/255.f green:200/255.f blue:200/255.f alpha:1.f]];
-			//[titleLabel setBackgroundColor:[UIColor greenColor]];
-			[sign addSubview:titleLabel];
-			
-			//Save button
-			saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-			[saveButton setTransform:CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90))];
-			[saveButton setLineBreakMode:NSLineBreakByClipping];
-			[saveButton addTarget:self action:@selector(onSaveButtonPressed)
-      forControlEvents:UIControlEventTouchUpInside];
-			[saveButton setTitle:@"Save" forState:UIControlStateNormal];
-			
-			CGSize buttonSize = CGSizeMake(55, 80.0); //Width/Height is swapped
-			
-			saveButton.frame = CGRectMake(sign.bounds.size.width - buttonSize.width, sign.bounds.size.height - buttonSize.height, buttonSize.width, buttonSize.height);
-			[saveButton setBackgroundColor:[UIColor colorWithRed:250/255.f green:250/255.f blue:250/255.f alpha:1.f]];
-			[sign addSubview:saveButton];
-			
-			//Clear button
-			clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-			[clearButton setTransform:CGAffineTransformMakeRotation(DEGREES_TO_RADIANS(90))];
-			[clearButton setLineBreakMode:NSLineBreakByClipping];
-			[clearButton addTarget:self action:@selector(onClearButtonPressed)
-						forControlEvents:UIControlEventTouchUpInside];
-			[clearButton setTitle:@"Reset" forState:UIControlStateNormal];
-			
-			clearButton.frame = CGRectMake(sign.bounds.size.width - buttonSize.width, 0, buttonSize.width, buttonSize.height);
-			[clearButton setBackgroundColor:[UIColor colorWithRed:250/255.f green:250/255.f blue:250/255.f alpha:1.f]];
-			[sign addSubview:clearButton];
-		}
-		
-	}
-	_loaded = true;
-	_border.path = [UIBezierPath bezierPathWithRect:self.bounds].CGPath;
-	_border.frame = self.bounds;
+    [super layoutSubviews];
+    if (!_loaded) {
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(didRotate:)
+                                                     name:UIDeviceOrientationDidChangeNotification object:nil];
+        
+        _context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+        
+        CGSize screen = self.bounds.size;
+        
+        sign = [[PPSSignatureView alloc]
+                initWithFrame: CGRectMake(0, 0, screen.width, screen.height)
+                context: _context];
+        
+        [self addSubview:sign];
+        [sign setSignViewDelegate:self];
+        
+        CGFloat buttonViewHeight = 70;
+        UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, buttonViewHeight)];
+        [buttonView setCenter:CGPointMake(self.bounds.size.width/2, self.bounds.size.height-(buttonViewHeight/2))];
+        [buttonView setBackgroundColor:UIColorFromRGB(0xf5f5f6)];
+        [sign addSubview:buttonView];
+        
+        
+        titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width-80, self.bounds.size.height - 80)];
+        [titleLabel setCenter:CGPointMake(self.bounds.size.width/2, self.bounds.size.height-90)];
+        [titleLabel setText:@"เขียนชื่อที่นี่"];
+        [titleLabel setLineBreakMode:NSLineBreakByClipping];
+        [titleLabel setTextAlignment: NSTextAlignmentCenter];
+        [titleLabel setTextColor:[UIColor colorWithRed:200/255.f green:200/255.f blue:200/255.f alpha:1.f]];
+        [sign addSubview:titleLabel];
+        
+        
+        
+        //Save button
+        saveButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [saveButton setLineBreakMode:NSLineBreakByClipping];
+        [saveButton addTarget:self action:@selector(onSaveButtonPressed)
+             forControlEvents:UIControlEventTouchUpInside];
+        [saveButton setTitle:@"บันทึก" forState:UIControlStateNormal];
+        
+        CGSize buttonSize = CGSizeMake(100, 55); //Width/Height is swapped
+        CGFloat margin = 15;
+        saveButton.frame = CGRectMake(buttonView.bounds.size.width - buttonSize.width, buttonView.bounds.size.height-buttonSize.height, buttonSize.width-margin, buttonSize.height-margin);
+        [saveButton setBackgroundColor:UIColorFromRGB(0xfec221)];
+        [saveButton setTitleColor:UIColorFromRGB(0x58585b) forState:UIControlStateNormal];
+        [buttonView addSubview:saveButton];
+        
+        //Clear button
+        clearButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [clearButton setLineBreakMode:NSLineBreakByClipping];
+        [clearButton addTarget:self action:@selector(onClearButtonPressed)
+              forControlEvents:UIControlEventTouchUpInside];
+        [clearButton setTitle:@"ลบ" forState:UIControlStateNormal];
+        
+        clearButton.frame = CGRectMake(margin, buttonView.bounds.size.height-buttonSize.height, buttonSize.width, buttonSize.height-margin);
+        [clearButton setBackgroundColor:UIColorFromRGB(0xfec221)];
+        [clearButton setTitleColor:UIColorFromRGB(0x58585b) forState:UIControlStateNormal];
+        [buttonView addSubview:clearButton];
+    }
+    
+    _loaded = true;
+    _border.path = [UIBezierPath bezierPathWithRect:self.bounds].CGPath;
+    _border.frame = self.bounds;
 }
 
 - (void)setRotateClockwise:(BOOL)rotateClockwise {
@@ -187,7 +159,17 @@
 	}
 }
 
+-(void) onPan{
+    if(![titleLabel isHidden]){
+        [titleLabel setHidden:YES];
+    }
+}
+
 -(void) onClearButtonPressed {
+    if([titleLabel isHidden]){
+        [titleLabel setHidden:NO];
+    }
+    
 	[self.sign erase];
 }
 
