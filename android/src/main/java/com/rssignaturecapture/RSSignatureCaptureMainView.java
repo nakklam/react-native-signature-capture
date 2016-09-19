@@ -45,7 +45,7 @@ public class RSSignatureCaptureMainView extends RelativeLayout implements OnClic
     String viewMode = "portrait";
     Boolean showNativeButtons = true;
     int maxSize = 500;
-    final const int BUTTON_LAYOUT_ID = 10001;
+    final int BUTTON_LAYOUT_ID = 10001;
 
     public RSSignatureCaptureMainView(Context context, Activity activity) {
         super(context);
