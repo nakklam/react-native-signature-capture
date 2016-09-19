@@ -6,6 +6,7 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.MotionEvent;
 
@@ -54,6 +55,7 @@ public class RSSignatureCaptureView extends View {
 	private int SCROLL_THRESHOLD = 50;
 
 	public interface SignatureCallback {
+		void onBeginDrag();
 		void onDragged();
 	}
 
@@ -82,7 +84,13 @@ public class RSSignatureCaptureView extends View {
 		this.setBackgroundColor(Color.WHITE);
 
 		// width and height should cover the screen
-		this.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+
+		int bottomMargin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 75, getResources().getDisplayMetrics());
+		System.out.println("bottomMargin =>" + bottomMargin);
+
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+		params.setMargins(0, 0, 0, bottomMargin);
+		this.setLayoutParams(params);
 	}
 
 	/**
@@ -245,6 +253,9 @@ public class RSSignatureCaptureView extends View {
 				resetDirtyRect(eventX, eventY);
 				addPoint(new TimedPoint(eventX, eventY));
 				if((Math.abs(mLastTouchX - eventX) > SCROLL_THRESHOLD || Math.abs(mLastTouchY - eventY) > SCROLL_THRESHOLD)){
+					if (callback != null && !dragged) {
+						callback.onBeginDrag();
+					}
 					dragged = true;
 				}
 				break;
